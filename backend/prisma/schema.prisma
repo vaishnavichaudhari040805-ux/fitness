@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  TRAINER
+  ADMIN
+}
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  passwordHash  String
+  role          Role           @default(USER)
+  profile       Profile?
+  workouts      Workout[]
+  nutritionLogs NutritionLog[]
+  xpPoints      Int            @default(0)
+  createdAt     DateTime       @default(now())
+}
+
+model Profile {
+  id            String        @id @default(uuid())
+  userId        String        @unique
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName     String
+  lastName      String
+  age           Int
+  weightKg      Float
+  heightCm      Float
+  goal          GoalType
+  activityLevel ActivityLevel
+}
+
+model Workout {
+  id           String            @id @default(uuid())
+  userId       String
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title        String
+  isAiGenerated Boolean          @default(false)
+  scheduledFor DateTime
+  completed    Boolean           @default(false)
+  exercises    WorkoutExercise[]
+}
+
+model WorkoutExercise {
+  id        String  @id @default(uuid())
+  workoutId String
+  workout   Workout @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  name      String
+  sets      Int
+  reps      Int
+  weightKg  Float?
+  completed Boolean @default(false)
+}
+
+model NutritionLog {
+  id       String   @id @default(uuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  foodName String
+  calories Int
+  proteinG Float
+  carbsG   Float
+  fatsG    Float
+  loggedAt DateTime @default(now())
+}
+
+
+
+enum GoalType {
+  Weight_Loss
+  Muscle_Gain
+  Endurance
+  Flexibility
+  General_Fitness
+}
+
+enum ActivityLevel {
+  Sedentary
+  Lightly_Active
+  Moderately_Active
+  Very_Active
+  Super_Active
+}
